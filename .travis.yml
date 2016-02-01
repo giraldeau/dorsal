@@ -7,7 +7,7 @@ before_script:
     - qmake -qt=qt5 -r -v
     - qmake -qt=qt5 -r
     - make
-script: make test
+script: make check TESTRUNNER=\"LD_LIBRARY_PATH=$(pwd)/perf/ sh -c \"
 branches:
     only:
         - master

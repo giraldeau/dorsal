@@ -1,9 +1,14 @@
-#include <QCoreApplication>
+#include <QDebug>
+
+#include "perf.h"
 
 int main(int argc, char *argv[])
 {
-    QCoreApplication a(argc, argv);
+    Q_UNUSED(argc);
+    Q_UNUSED(argv);
 
-    return a.exec();
+    qDebug() << "hello";
+
+    return 0;
 }
 
