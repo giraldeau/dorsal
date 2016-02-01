@@ -20,7 +20,7 @@ PerfTest::PerfTest()
 
 void PerfTest::testCreateCounter()
 {
-    Perf p;
+    PerfNS::Perf p;
 
     QVERIFY2(true, "Failure");
 }

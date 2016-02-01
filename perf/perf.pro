@@ -11,10 +11,14 @@ TEMPLATE = lib
 
 DEFINES += PERF_LIBRARY
 
-SOURCES += perf.cpp
+SOURCES += perf.cpp \
+    perfimpl.cpp \
+    perfevent.cpp
 
 HEADERS += perf.h\
-        perf_global.h
+        perf_global.h \
+    perfimpl.h \
+    perfevent.h
 
 unix {
     target.path = /usr/lib
