@@ -1,4 +1,1 @@
 TEMPLATE = subdirs
-
-SUBDIRS += \
-    papi
