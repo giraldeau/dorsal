@@ -12,7 +12,7 @@ TARGET = tst_perftest
 CONFIG   += console
 CONFIG   -= app_bundle
 CONFIG += testcase
-
+CONFIG += c++11
 TEMPLATE = app
 
 

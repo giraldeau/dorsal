@@ -1,5 +1,5 @@
-unix:!macx: LIBS += -L$${top_builddir}/perf/ -lperf
+unix:!macx: LIBS += -L$${top_builddir}/lib/ -ldorsal
 
-INCLUDEPATH += $${top_srcdir}/perf/
-DEPENDPATH += $${top_srcdir}/perf/
+INCLUDEPATH += $${top_srcdir}/lib/
+DEPENDPATH += $${top_srcdir}/lib/
 
