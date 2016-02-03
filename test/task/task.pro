@@ -1,6 +1,6 @@
 #-------------------------------------------------
 #
-# Project created by QtCreator 2016-02-01T15:33:07
+# Project created by QtCreator 2016-02-03T10:41:08
 #
 #-------------------------------------------------
 
@@ -8,13 +8,14 @@ QT       += testlib
 
 QT       -= gui
 
-TARGET = tst_perftest
+TARGET = tst_tasktest
 CONFIG   += console
 CONFIG   -= app_bundle
-CONFIG += testcase
+
 TEMPLATE = app
 
-SOURCES += tst_perftest.cpp
+
+SOURCES += tst_tasktest.cpp
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
 
 include(../../common.pri)

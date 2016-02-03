@@ -13,10 +13,14 @@ DEFINES += DORSAL_LIBRARY
 
 CONFIG += c++11
 
-SOURCES += perf.cpp
+SOURCES += perf.cpp \
+    taskrt.cpp \
+    taskmanager.cpp
 
 HEADERS += perf.h\
-        perf_global.h
+        perf_global.h \
+    taskrt.h \
+    taskmanager.h
 
 unix {
     target.path = /usr/lib
