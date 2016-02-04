@@ -15,12 +15,16 @@ CONFIG += c++11
 
 SOURCES += perf.cpp \
     taskrt.cpp \
-    taskmanager.cpp
+    taskmanager.cpp \
+    sleeper.cpp \
+    sleepernano.cpp
 
 HEADERS += perf.h\
         perf_global.h \
     taskrt.h \
-    taskmanager.h
+    taskmanager.h \
+    sleeper.h \
+    sleepernano.h
 
 unix {
     target.path = /usr/lib

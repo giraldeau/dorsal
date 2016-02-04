@@ -4,6 +4,7 @@
 
 #include "taskmanager.h"
 #include "taskrt.h"
+#include "sleepernano.h"
 
 class TaskTest : public QObject
 {
@@ -14,6 +15,7 @@ public:
 
 private Q_SLOTS:
     void testTaskManager();
+    void testSleeperNanosleep();
 };
 
 TaskTest::TaskTest()
@@ -99,6 +101,22 @@ void TaskTest::testTaskManager()
     t.join();
 
     QVERIFY2(true, "Failure");
+}
+
+void TaskTest::testSleeperNanosleep()
+{
+    uint p = 1000000;
+    SleeperNano s1(p);
+    s1.start();
+
+    QElapsedTimer timer;
+    timer.start();
+    qint64 t1 = timer.nsecsElapsed();
+    s1.waitNextPeriod();
+    qint64 t2 = timer.nsecsElapsed();
+    s1.stop();
+    qint64 diff = (t2 - t1) - p;
+    QVERIFY2(diff > 0, "duration is less than the period");
 }
 
 QTEST_APPLESS_MAIN(TaskTest)
