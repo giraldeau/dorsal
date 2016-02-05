@@ -2,4 +2,5 @@ TEMPLATE = subdirs
 
 SUBDIRS += \
     tstperf \
-    task
+    task \
+    traceapi
