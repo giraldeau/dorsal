@@ -1,0 +1,3 @@
+#!/bin/sh
+
+perf script --itrace=i0nsg -s stats.py $@

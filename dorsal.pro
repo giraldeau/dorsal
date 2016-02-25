@@ -4,4 +4,6 @@ SUBDIRS += \
     lib \
     simrt \
     test \
-    kfn
+    kfn \
+    scheddl \
+    ptstats
