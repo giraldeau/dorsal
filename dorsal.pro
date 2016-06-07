@@ -6,4 +6,5 @@ SUBDIRS += \
     test \
     kfn \
     scheddl \
-    ptstats
+    ptstats \
+    ptparse
