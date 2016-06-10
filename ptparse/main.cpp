@@ -1,12 +1,26 @@
+/* Intel PT Extractor
+ * ------------------
+ *
+ * (C) 2016 DORSAL Lab
+ *
+ * Francis Giraldeau <francis.giraldeau@gmail.com>
+ * Suchakra Sharma <suchakrapani.sharma@polymtl.ca>
+ *
+ * Goes through the perf.data file for which the intel_pt PMU was used
+ * at record time. The recorded raw PT data is then extracted from the
+ * AUX buffers where perf had saved it.
+ *
+ * DISCLAIMER : Experimental software. Handle with care.
+ */
+
 #include <QCoreApplication>
 #include <QCommandLineParser>
 #include <QCommandLineOption>
 #include <QFile>
 #include <QString>
 #include <QByteArray>
-#include <QDebug>
 #include <QtEndian>
-
+#include <QDebug>
 
 #include <linux/perf_event.h>
 
@@ -27,14 +41,13 @@
 #define HEADER_FEAT_BITS 256
 
 typedef qint64 u64;
+typedef qint32 u32;
 
 struct perf_file_section {
     u64 offset;
     u64 size;
-}__attribute__((packed));
+};
 
-/*size is (u64*3) + (3*(u64*2)) + 4? */
-/* 24  + 48 + 4? = 76 bytes */
 struct perf_file_header {
     u64				magic;
     u64				size;
@@ -44,7 +57,18 @@ struct perf_file_header {
     /* event_types is ignored */
     struct perf_file_section	event_types;
     DECLARE_BITMAP(adds_features, HEADER_FEAT_BITS);
-}__attribute__((packed));
+};
+
+struct auxtrace_event {
+    struct perf_event_header header;
+    u64 size;
+    u64 offset;
+    u64 reference;
+    u32 idx;
+    u32 tid;
+    u32 cpu;
+    u32 reserved__; /* For alignment */
+};
 
 int main(int argc, char *argv[])
 {
@@ -53,7 +77,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setApplicationVersion("0.1");
     QCommandLineParser parser;
 
-    parser.setApplicationDescription("extract intel pt buffers from perf.data");
+    parser.setApplicationDescription("Extract Intel PT data from perf.data AUX buffer");
     parser.addHelpOption();
     parser.addVersionOption();
     parser.addPositionalArgument("perf.data", "path to perf.data file");
@@ -61,57 +85,50 @@ int main(int argc, char *argv[])
     parser.process(app);
     const QStringList args = parser.positionalArguments();
 
-    qDebug() << args;
     QString perfData = "perf.data";
+    QString ptData = "extracted.pt";
     if (args.size() > 0) {
-        perfData = args.at(0);
+        perfData = args.at(0);  /* Input perf.data file */
+        ptData = args.at(1);    /* Extracted PT file */
     }
-
-    qDebug() << perfData;
 
     QFile file(perfData);
     if (file.open(QFile::ReadOnly)) {
-        qDebug() << "file size:" << file.size();
         uchar *buf = file.map(0, file.size());
-
         QString str(QByteArray{(char *)buf, 8});
-        qDebug() << str;
 
         struct perf_file_header* perfHead;
-        perfHead = (struct perf_file_header*) buf; //probably a good way is to memcpy properly
+        perfHead = (struct perf_file_header*) buf;
 
-
-        qDebug() << "0x" + QString::number(qToBigEndian(perfHead->magic), 16); // we need to change byteorder
-
-        qDebug() << "0x" + QString::number(qToBigEndian(perfHead->size), 16);
-        qDebug() << "0x" + QString::number(sizeof(*perfHead), 16);
-
-        qDebug() << "0x" + QString::number(qToBigEndian(perfHead->attr_size), 16);
-
-        qDebug() << "0x" + QString::number(qToBigEndian((u64)perfHead->adds_features[0]), 16);
+        qDebug() << QString("%1").arg(perfHead->data.offset, 0, 16);
+        qDebug() << QString("%1").arg(perfHead->data.size, 0, 16);
 
         int pos = perfHead->data.offset;
-
-        qDebug() << perfHead->data.offset << QString("%1").arg(perfHead->data.offset, 0, 16);
-        qDebug() << perfHead->data.size << QString("%1").arg(perfHead->data.size, 0, 16);
 
         fflush(stderr);
 
         while (pos < file.size()) {
-            uchar *x = buf + pos;
-            ushort *blah = (ushort *) x;
-            qDebug() << *blah;
 
             struct perf_event_header *h = (struct perf_event_header *) (buf + pos);
-            printf("type 0x%x\n", h->type);
-            printf("size %d\n", h->size);
+            if (h->type == 71)  /* PERF_RECORD_AUXTRACE */
+            {
+                struct auxtrace_event *aux = (struct auxtrace_event *) (buf + pos);
+                printf("AUX Size: %lld\n", aux->size);
+                QByteArray baba;
+
+                /* skip 48 bytes of auxtrace_event struct also */
+                char *ptData = (char *) (buf + pos) + sizeof(struct auxtrace_event);
+
+                baba.setRawData(ptData, aux->size);
+
+                QFile ptFile(ptData);
+                ptFile.open(QIODevice::WriteOnly);
+                ptFile.write(baba);
+                ptFile.close();
+            }
+
             pos += h->size;
-            break;
         }
-
     }
-
-
     return 0;
 }
-
