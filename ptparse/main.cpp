@@ -43,6 +43,20 @@
 typedef qint64 u64;
 typedef qint32 u32;
 
+enum perf_user_event_type { /* above any possible kernel type */
+    PERF_RECORD_USER_TYPE_START		= 64,
+    PERF_RECORD_HEADER_ATTR			= 64,
+    PERF_RECORD_HEADER_EVENT_TYPE		= 65, /* depreceated */
+    PERF_RECORD_HEADER_TRACING_DATA		= 66,
+    PERF_RECORD_HEADER_BUILD_ID		= 67,
+    PERF_RECORD_FINISHED_ROUND		= 68,
+    PERF_RECORD_ID_INDEX			= 69,
+    PERF_RECORD_AUXTRACE_INFO		= 70,
+    PERF_RECORD_AUXTRACE			= 71,
+    PERF_RECORD_AUXTRACE_ERROR		= 72,
+    PERF_RECORD_HEADER_MAX
+};
+
 struct perf_file_section {
     u64 offset;
     u64 size;
@@ -86,10 +100,12 @@ int main(int argc, char *argv[])
     const QStringList args = parser.positionalArguments();
 
     QString perfData = "perf.data";
-    QString ptData = "extracted.pt";
+    QString ptFileName = "extracted.pt";
+
+    /* Custom path, if needed */
     if (args.size() > 0) {
         perfData = args.at(0);  /* Input perf.data file */
-        ptData = args.at(1);    /* Extracted PT file */
+        ptFileName = args.at(1);    /* Extracted PT file */
     }
 
     QFile file(perfData);
@@ -100,34 +116,70 @@ int main(int argc, char *argv[])
         struct perf_file_header* perfHead;
         perfHead = (struct perf_file_header*) buf;
 
-        qDebug() << QString("%1").arg(perfHead->data.offset, 0, 16);
-        qDebug() << QString("%1").arg(perfHead->data.size, 0, 16);
+        //qDebug() << QString("%1").arg(perfHead->data.offset, 0, 16);
+        //qDebug() << QString("%1").arg(perfHead->data.size, 0, 16);
 
         int pos = perfHead->data.offset;
 
         fflush(stderr);
 
+        int prev_pos = 0;
+        //qDebug() << "file size:" << file.size();
+
         while (pos < file.size()) {
 
             struct perf_event_header *h = (struct perf_event_header *) (buf + pos);
-            if (h->type == 71)  /* PERF_RECORD_AUXTRACE */
+
+            switch(h->type) {
+
+            case PERF_RECORD_AUXTRACE:
             {
                 struct auxtrace_event *aux = (struct auxtrace_event *) (buf + pos);
-                printf("AUX Size: %lld\n", aux->size);
+
+                if (aux->size == 0)
+                    break;
+
                 QByteArray baba;
 
-                /* skip 48 bytes of auxtrace_event struct also */
+                /* Skip 48 bytes of auxtrace_event struct also */
                 char *ptData = (char *) (buf + pos) + sizeof(struct auxtrace_event);
 
                 baba.setRawData(ptData, aux->size);
+                QString extn = QString::number(aux->cpu); /* Extension is AUX buf's CPU */
 
-                QFile ptFile(ptData);
-                ptFile.open(QIODevice::WriteOnly);
+                /* Write per-CPU files */
+                QFile ptFile(ptFileName + "." + extn);
+                //qDebug() << ptFile.fileName();
+                ptFile.open(QIODevice::WriteOnly | QIODevice::Append);
                 ptFile.write(baba);
                 ptFile.close();
+
+                /* Advance pos by AUX size */
+                pos += aux->size;
+
+                /* Advance pos by event size */
+                pos += h->size;
+            }
+                break;
+
+            default:
+                /* Advance pos by event size */
+                pos += h->size;
+                break;
             }
 
-            pos += h->size;
+            /* TODO: Investigate further and make sure what the extra bytes are just before header
+             * starts. Refer https://twitter.com/tuxology/status/742701706572668928
+             *
+             * If event size is 0, assume we are not an event and bail out. Usually always happens
+             * just after some PERF_RECORD_FINISHED_ROUND events right before the perf header at
+             * the end of perf.data
+             */
+
+            if (prev_pos == pos)
+                return 0;
+            prev_pos = pos;
+
         }
     }
     return 0;
