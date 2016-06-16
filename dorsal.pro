@@ -7,4 +7,5 @@ SUBDIRS += \
     kfn \
     scheddl \
     ptstats \
-    ptparse
+    ptparse \
+    latdetect
