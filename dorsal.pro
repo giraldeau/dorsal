@@ -8,4 +8,5 @@ SUBDIRS += \
     scheddl \
     ptstats \
     ptparse \
-    latdetect
+    latdetect \
+    uctx
