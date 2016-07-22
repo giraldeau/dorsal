@@ -12,7 +12,7 @@ void foo() {
 
 void bar() {
     getcontext(&ctx);
-    qDebug() << "done" << done++;
+    std::cout << "done " << done++ << std::endl;
     foo();
 }
 

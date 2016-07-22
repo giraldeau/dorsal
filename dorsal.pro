@@ -9,4 +9,5 @@ SUBDIRS += \
     ptstats \
     ptparse \
     latdetect \
-    uctx
+    uctx \
+    foo
