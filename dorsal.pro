@@ -10,4 +10,8 @@ SUBDIRS += \
     ptparse \
     latdetect \
     uctx \
-    foo
+    foo \
+    ehframe \
+    asm \
+    qttest \
+    shrptr
