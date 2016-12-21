@@ -14,4 +14,5 @@ SUBDIRS += \
     ehframe \
     asm \
     qttest \
-    shrptr
+    shrptr \
+    userfault

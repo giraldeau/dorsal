@@ -7,8 +7,7 @@
 #include <QDataStream>
 #include <QDebug>
 
-#include "intel-pt.h"
-
+//#include "intel-pt.h"
 
 int main(int argc, char *argv[])
 {
