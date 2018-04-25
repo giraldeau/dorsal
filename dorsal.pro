@@ -15,4 +15,8 @@ SUBDIRS += \
     asm \
     qttest \
     shrptr \
-    userfault
+    userfault \
+    bind \
+    reverseiter \
+    defarg \
+    qlist
